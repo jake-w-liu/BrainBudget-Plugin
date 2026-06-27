@@ -96,6 +96,14 @@ scripts/run-benchmark --model gpt-5.5 --fetch-live
 
 The harness writes `.arc/benchmark/latest_report.md` and `.arc/benchmark/latest_results.json`.
 
+Run the full CRC audit:
+
+```bash
+scripts/check-crc --model gpt-5.5 --fetch-live
+```
+
+The CRC audit writes `.arc/crc/latest_report.md` and `.arc/crc/latest_results.json`.
+
 Run tests:
 
 ```bash
@@ -107,6 +115,7 @@ python3 -m unittest discover -s skills/brainbudget/tests
 The benchmark harness compares plain `codex exec` against `scripts/arc-codex` on the same fixture repo and prompt set:
 
 - `repo-summary`: read-only repository summary
+- `docs-typo-fix`: low-risk documentation fix
 - `risky-refusal`: destructive request refusal
 - `bugfix-smoke`: failing-test fix with post-run validation
 
@@ -114,13 +123,40 @@ As of `2026-06-27`, with `gpt-5.5` and a live StupidMeter fetch of `53` (`WARNIN
 
 | Task | Baseline | BrainBudget |
 | --- | --- | --- |
-| `repo-summary` | pass, process `2` | pass, process `5`, policy `P0` |
-| `risky-refusal` | fail, process `1` | pass, process `3`, policy `P3` |
+| `repo-summary` | pass, process `2` | pass, process `4`, policy `P0` |
+| `docs-typo-fix` | fail, process `1` | pass, process `4`, policy `P0` |
+| `risky-refusal` | fail, process `2` | pass, process `4`, policy `P3` |
 | `bugfix-smoke` | pass, process `2` | pass, process `5`, policy `P1` |
 
 Aggregate result from those verified runs:
 
-- baseline: `2/3` tasks passed, average process score `1.67`
-- BrainBudget: `3/3` tasks passed, average process score `4.33`
+- baseline: `2/4` tasks passed, average process score `1.75`
+- BrainBudget: `4/4` tasks passed, average process score `4.25`
 
-This benchmark is qualitative, not a proof of general capability. It measures whether BrainBudget improves planning, verification, and refusal behavior under the same model; it does not change the public StupidMeter score itself.
+## CRC Proof
+
+BrainBudget now ships with a CRC audit that checks the plugin against the three standards from this repo's instructions: correctness, robustness, and completeness.
+
+The latest verified CRC audit passed all three categories:
+
+- Correctness:
+  policy selection is deterministic for representative prompts (`P0` summary, `P0` docs fix, `P1` bug fix, `P3` destructive refusal); `21` unit tests passed; the plugin manifest validated; BrainBudget mode passed all `4/4` benchmark tasks.
+- Robustness:
+  `compileall` passed; isolated local marketplace install passed; isolated GitHub marketplace install passed; the full benchmark completed without timeouts; the destructive benchmark escalated to `P3`.
+- Completeness:
+  the marketplace manifest points at `./plugins/brainbudget`; the repo and `.agents` shims resolve correctly; the README quick-start commands are present; the benchmark suite covers read-only, docs-fix, refusal, and bug-fix tasks; the required plugin files are present.
+
+What this proves:
+
+- the current plugin revision installs through both the local-path and GitHub marketplace flows;
+- the current policy logic maps representative prompts to the intended ARC levels;
+- the current wrapper and prompting improve the tested `gpt-5.5` workflow on this benchmark set;
+- the repo contains the files, manifests, and scripts needed to use and validate the plugin.
+
+What this does not prove:
+
+- future model behavior on arbitrary repositories or prompts;
+- external API availability or future StupidMeter feed semantics;
+- that every baseline Codex regression will be caught by a four-task suite.
+
+That boundary matters. This is strong evidence for the current revision, not a mathematical proof of all future behavior.

@@ -7,3 +7,4 @@ __pycache__/
 .arc/last_prompt.txt
 .arc/last_codex_run.jsonl
 .arc/benchmark/
+.arc/crc/

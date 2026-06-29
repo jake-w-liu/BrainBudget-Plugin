@@ -30,7 +30,7 @@ behaves in response to that score and to local repository evidence.
 Install the marketplace:
 
 ```bash
-codex plugin marketplace add jake-w-liu/BrainBudget-Codex-Plugin
+codex plugin marketplace add jake-w-liu/BrainBudget-Plugin
 ```
 
 Install the plugin from that marketplace:
@@ -53,14 +53,26 @@ brainbudget@brainbudget  installed, enabled
 
 Start a new Codex thread so the `brainbudget` skill and hook bundle are loaded.
 
+## Install (Claude Code)
+
+BrainBudget also installs as a Claude Code plugin. Add this checkout as a
+marketplace and install the plugin from it:
+
+```bash
+claude plugin marketplace add jake-w-liu/BrainBudget-Plugin
+claude plugin install brainbudget@brainbudget
+```
+
+Start a new Claude Code session so the `brainbudget` skill and hooks are loaded.
+
 ## Local Checkout Install
 
 Use this path if you want to develop the plugin locally instead of consuming it
 through GitHub marketplace install.
 
 ```bash
-git clone https://github.com/jake-w-liu/BrainBudget-Codex-Plugin.git
-cd BrainBudget-Codex-Plugin
+git clone https://github.com/jake-w-liu/BrainBudget-Plugin.git
+cd BrainBudget-Plugin
 python3 scripts/install-plugin --install --install-profiles
 ```
 

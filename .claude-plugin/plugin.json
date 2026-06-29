@@ -1,0 +1,19 @@
+{
+  "name": "brainbudget",
+  "version": "0.1.1",
+  "description": "Adaptive planning and verification policy driven by AI Stupid Level data and local repository signals.",
+  "author": {
+    "name": "Jake"
+  },
+  "homepage": "https://github.com/jake-w-liu/BrainBudget-Plugin",
+  "repository": "https://github.com/jake-w-liu/BrainBudget-Plugin",
+  "keywords": [
+    "reliability",
+    "verification",
+    "planning",
+    "stupidmeter",
+    "ai-stupid-level",
+    "codex",
+    "claude-code"
+  ]
+}

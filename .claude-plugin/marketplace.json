@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "brainbudget",
+  "description": "Adaptive planning and verification policy driven by AI Stupid Level data and local repository signals.",
+  "owner": {
+    "name": "Jake"
+  },
+  "plugins": [
+    {
+      "name": "brainbudget",
+      "description": "Adaptive planning and verification policy driven by AI Stupid Level data and local repository signals.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 # BrainBudget
 
-BrainBudget is a Codex plugin, hook bundle, and CLI wrapper for making Codex
-more cautious when reliability is drifting.
+BrainBudget is a plugin, hook bundle, and CLI wrapper for Codex and Claude Code
+that makes the assistant more cautious when reliability is drifting.
 
 It combines three signals before editing:
 
@@ -10,22 +10,25 @@ It combines three signals before editing:
 - task-specific risk from the prompt itself.
 
 From those signals it selects an ARC policy level, `P0` through `P3`, and
-pushes Codex toward stronger planning, verification, and refusal behavior when
-the work is riskier.
+pushes the assistant toward stronger planning, verification, and refusal
+behavior when the work is riskier.
 
 ## What BrainBudget Includes
 
-- the `brainbudget` Codex skill in `skills/brainbudget/`
-- `scripts/arc-codex`, a wrapper that classifies the task and launches Codex
-- lifecycle hooks in `hooks/hooks.json`
-- optional Codex profiles in `profiles/arc-p*.config.toml`
+- the `brainbudget` skill in `skills/brainbudget/`, which loads in both Codex
+  and Claude Code
+- lifecycle hooks in `hooks/hooks.json` (`UserPromptSubmit`, `PostToolUse`,
+  `Stop`) that load in both Codex and Claude Code
+- `scripts/arc-codex`, a Codex-specific CLI wrapper that classifies the task and
+  launches Codex
+- optional Codex profiles in `profiles/arc-p*.config.toml` (Codex-only)
 - a benchmark harness in `scripts/run-benchmark`
 - a CRC audit runner in `scripts/check-crc`
 
-BrainBudget does not change the public StupidMeter score. It changes how Codex
-behaves in response to that score and to local repository evidence.
+BrainBudget does not change the public StupidMeter score. It changes how the
+assistant behaves in response to that score and to local repository evidence.
 
-## Quick Start
+## Quick Start (Codex)
 
 Install the marketplace:
 
@@ -55,20 +58,25 @@ Start a new Codex thread so the `brainbudget` skill and hook bundle are loaded.
 
 ## Install (Claude Code)
 
-BrainBudget also installs as a Claude Code plugin. Add this checkout as a
-marketplace and install the plugin from it:
+BrainBudget also installs as a Claude Code plugin. Add the marketplace from the
+GitHub repository and install the plugin from it:
 
 ```bash
 claude plugin marketplace add jake-w-liu/BrainBudget-Plugin
 claude plugin install brainbudget@brainbudget
 ```
 
-Start a new Claude Code session so the `brainbudget` skill and hooks are loaded.
+This loads both the `brainbudget` skill and the hook bundle
+(`UserPromptSubmit`, `PostToolUse`, and `Stop`) in Claude Code. Start a new
+Claude Code session so the skill and hooks are active.
 
-## Local Checkout Install
+## Local Checkout Install (Codex)
 
 Use this path if you want to develop the plugin locally instead of consuming it
-through GitHub marketplace install.
+through GitHub marketplace install. This installer is Codex-specific: it
+registers the plugin with the Codex CLI and copies Codex profiles. (Claude Code
+users should install via the GitHub shorthand shown in "Install (Claude Code)"
+above.)
 
 ```bash
 git clone https://github.com/jake-w-liu/BrainBudget-Plugin.git
@@ -98,6 +106,20 @@ as these are enough:
 The skill also becomes relevant when you mention StupidMeter, AI Stupid Level,
 reliability, or flaky model behavior.
 
+### In Claude Code
+
+There is no `$` prefix in Claude Code. The `brainbudget` skill activates
+automatically when you ask for the relevant task and its description matches
+(for example when you mention StupidMeter, AI Stupid Level, reliability, or
+flaky model behavior), or you can ask for it by name. The same prompts work:
+
+- `Use BrainBudget before changing anything.`
+- `Use BrainBudget for this bug fix and verify the result.`
+- `This task feels risky; use BrainBudget.`
+
+In Claude Code the bundled hooks also run on each session: they classify task
+risk on prompt submit, record tool outcomes, and write ARC telemetry on stop.
+
 ### From the Terminal
 
 Dry-run the wrapper and inspect the selected policy without launching Codex:
@@ -121,7 +143,7 @@ policy preamble directly into the `codex exec` invocation.
 BrainBudget currently ships with these default policy levels from
 `.arc/policies.yaml`:
 
-| Policy | Typical situation | Codex behavior | Default settings |
+| Policy | Typical situation | Assistant behavior | Default settings |
 | --- | --- | --- | --- |
 | `P0` | low-risk read or small local task | work directly, keep scope tight, run targeted verification | `medium` reasoning, `medium` verbosity, `on-request` approval |
 | `P1` | normal code change or moderate task risk | plan first, state success criteria, run relevant checks, review diff | `high` reasoning, `medium` verbosity, `on-request` approval |
@@ -155,17 +177,18 @@ Most runtime files under `.arc/` are ignored in git.
 ## Hooks, Telemetry, and Profiles
 
 The plugin bundle includes `hooks/hooks.json`, which wires three lifecycle
-events:
+events. These hooks load and run in both Codex and Claude Code:
 
 - `UserPromptSubmit`: classify the prompt and write ARC context
 - `PostToolUse`: record tool outcomes
 - `Stop`: write final telemetry
 
-The repo also includes `.codex/hooks.json` for repo-local development.
+The repo also includes `.codex/hooks.json` for repo-local Codex development.
 
 Optional profiles are available in `profiles/arc-p0.config.toml` through
-`profiles/arc-p3.config.toml`. Installing them is not required, but it gives
-Codex named profiles that match the wrapper's selected policy levels.
+`profiles/arc-p3.config.toml`. These are Codex-only. Installing them is not
+required, but it gives Codex named profiles that match the wrapper's selected
+policy levels.
 
 ## Benchmark Harness
 
@@ -338,20 +361,33 @@ python3 scripts/run_benchmark.py --model gpt-5.5 --tasks risky-refusal --fetch-l
 
 ## Repository Layout
 
+- `.claude-plugin/plugin.json`
+  Claude Code plugin manifest
+- `.claude-plugin/marketplace.json`
+  Claude Code marketplace manifest
+- `.codex-plugin/plugin.json`
+  Codex plugin manifest
+- `skills/brainbudget/SKILL.md`
+  the cross-platform skill definition loaded by Codex and Claude Code
 - `skills/brainbudget/`
   skill instructions, policy logic, telemetry, tests, and references
 - `hooks/`
-  plugin-bundled Codex hooks
+  plugin-bundled lifecycle hooks (`hooks.json` plus the Python hook scripts);
+  these run in both Codex and Claude Code
 - `.arc/`
   repo-local configuration and runtime outputs
 - `.codex/hooks.json`
-  repo-local hook configuration for development
+  repo-local hook configuration for Codex development
 - `profiles/`
-  optional `arc-p0` through `arc-p3` Codex profiles
+  optional Codex-only `arc-p0` through `arc-p3` profiles
 - `benchmarks/`
   benchmark suite definitions and fixture repositories
 - `scripts/`
   wrapper, installers, validator, benchmark runner, and CRC audit runner
+- `.agents/plugins/marketplace.json`
+  local marketplace registration written by the local-checkout installer
+- `pyproject.toml`
+  package metadata used by the CRC audit's version checks
 
 ## Proof Boundary
 

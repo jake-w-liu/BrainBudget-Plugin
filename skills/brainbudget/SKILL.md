@@ -1,13 +1,13 @@
 ---
 name: brainbudget
-description: Use when the user mentions StupidMeter, AI Stupid Level, reliability, steadier Codex output, flaky model behavior, or when a coding task is risky enough to require adaptive planning and verification.
+description: Use when the user mentions StupidMeter, AI Stupid Level, reliability, steadier output, flaky model behavior, or when a coding task is risky enough to require adaptive planning and verification.
 ---
 
 # BrainBudget
 
 ## Purpose
 
-Use this workflow to reduce variance in Codex coding results. Treat external
+Use this workflow to reduce variance in the assistant's coding results. Treat external
 benchmark data as a noisy global signal and combine it with local repository
 evidence before deciding how cautiously to work.
 
